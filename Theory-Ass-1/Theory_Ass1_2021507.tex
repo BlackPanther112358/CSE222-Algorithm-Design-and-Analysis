@@ -1,0 +1,305 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{algpseudocode}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{paralist}
+\usepackage{blindtext}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=black
+    }
+
+\title{ADA Theory Assignment - 1}
+\author{
+    \\\vspace{0em} Aakarsh Jain \\\vspace{-0.5em}
+    \footnotesize{Roll Number - 2021507}\\\vspace{-0.5em}
+    \footnotesize{IIIT - Delhi}\\\vspace{-0.5em}
+    \footnotesize{\href{mailto:aakarsh21507@iiitd.ac.in}{\texttt{aakarsh21507@iiitd.ac.in}}}
+  \and
+    \\\vspace{0em} Siddhant Rai Viksit \\\vspace{-0.5em}
+    \footnotesize{Roll Number - 2021565}\\\vspace{-0.5em}
+    \footnotesize{IIIT - Delhi}\\\vspace{-0.5em}
+    \footnotesize{\href{mailto:siddhant21565@iiitd.ac.in}{\texttt{siddhant21565@iiitd.ac.in}}} 
+    \vspace{1em}
+}
+
+\date{February 21, 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+
+\subsection{Problem}
+
+Consider the problem of putting L-shaped tiles (L-shaped consisting of three squares) in an n × n square-board. You can assume that n is a power of 2. Suppose that one square of this board is defective and tiles cannot be put in that square. Also, two L-shaped tiles cannot intersect each other. Describe an algorithm that computes a proper tiling of the board. Justify the running time of your algorithm.
+
+\subsection{Approach}
+
+We will divide the board of size $n \times n$ into 4 smaller boards of size $\frac{n}{2} \times \frac{n}{2}$ each. We can then place tiles on each 4 boards recursively, leaving out exactly 1 square on each of the smaller boards un-tiled. For the smaller board containing defective square, we will leave that square un-tiled, and for remaining $3$ boards, we will leave the corner squares un-tiled so that we can place a tile there during the combination phase of the algorithm.
+
+\subsection{Pre-Processing}
+
+We will create a $n \times n$ board using nested arrays to store the tiled squares. Thus, we initialize such a board as $A[n][n]$ which will be filled with a valid tiling. To indicate un-tiled squares, we will use $-1$. Thus, $A$ is initialized with $-1$.
+
+\subsection{Subproblem}
+
+We define a routine \underline{BOARD TILING} where we pass the the board to tile and the square to be left un-tiled. Let $n$ be the size of board, then we can represent the squares on the board using Cartesian Coordinate System as $(x, y)$, where $1 \leq x, y \leq n$.
+
+If $n > 2$, the routine \underline{BOARD TILING} will call itself recursively $4$ times. If the defective square belongs to that sub-board, we will pass the coordinates of the defective square, otherwise we will pass the coordinates to the center-most square w.r.t. to the larger board to the recursive call.
+
+If $n = 2$, the routine \underline{BOARD TILING} will place a tile on $3$ of its squares, leaving the passed square empty
+
+To indicate the portion of board to tile for every call to \underline{BOARD TILING}, we also pass the coordinates of top-left and bottom-right corner of the board.
+
+We will also define a subroutine \underline{TILE} where we pass the coordinates of the $3$ squares we need to place a tile on.
+
+\subsection{Combine step}
+
+Now, we need to place another tile to cover $3$ of the remaining un-tiled $4$ squares. To achieve this, we will check the resultant $4$ central squares. If exactly $3$ of the squares are un-tiled, we can simply tile them. If all $4$ of the squares are un-tiled, it means that one the central squares are defective and we can tile the remaining $3$ squares other than the square passed in the subroutine call for \underline{BOARD TILING}. We shall do this using the \underline{COMBINE TILE} routine.
+
+Thus we will call the \underline{COMBINE TILE} routine for every routine call of \underline{BOARD TILING} when $n > 2$.
+
+\subsection{Pseudo-Code}
+
+
+\begin{algorithmic}[1]
+\Procedure{tile}{$A[1..n][1..n], (x_1, y_1), (x_2, y_2), (x_3, y_3$)}
+\State Generate random unique positive integer $id$
+\State $A[x_3][y_3] \gets A[x_2][y_2] \gets A[x_1][y_1] \gets id$
+\State \Return{$A$}
+\EndProcedure
+
+\Procedure{combineTiling}{$A[1..n][1..n], (x_d, y_d), (x_{min}, y_{min}), (x_{max}, y_{max})$}
+\State $x_{mid} \gets \frac{x_{max} + x_{min} - 1}{2}$
+\State $y_{mid} \gets \frac{y_{max} + y_{min} - 1}{2}$
+\If{$(x_d, y_d) = (x_{mid}, y_{mid})$ or $A[x_{mid}][y_{mid}] > 0$}
+\State $A \gets \Call{tile}{A, (x_{mid}, y_{mid} + 1), (x_{mid} + 1, y_{mid}), (x_{mid} + 1, y_{mid} + 1)}$
+\ElsIf{$(x_d, y_d) = (x_{mid} + 1, y_{mid})$ or $A[x_{mid} + 1][y_{mid}] > 0$}
+\State $A \gets \Call{tile}{A, (x_{mid}, y_{mid}), (x_{mid}, y_{mid} + 1), (x_{mid} + 1, y_{mid} + 1)}$
+\ElsIf{$(x_d, y_d) = (x_{mid}, y_{mid} + 1)$ or $A[x_{mid}][y_{mid} + 1] > 0$}
+\State $A \gets \Call{tile}{A, (x_{mid}, y_{mid}), (x_{mid} + 1, y_{mid}), (x_{mid} + 1, y_{mid} + 1)}$
+\Else
+\State $A \gets \Call{tile}{A, (x_{mid}, y_{mid}), (x_{mid} + 1, y_{mid}), (x_{mid}, y_{mid} + 1)}$
+\EndIf
+\State \Return{$A$}
+\EndProcedure
+
+\Procedure{boardTiling}{$A[1..n][1..n], (x_d, y_d), (x_{min}, y_{min}), (x_{max}, y_{max})$}
+\State $x_{mid} \gets \frac{x_{max} + x_{min} - 1}{2}$
+\State $y_{mid} \gets \frac{y_{max} + y_{min} - 1}{2}$
+\If{$x_{mid} = x_{min}$} \Comment{Base Case}
+\State $A \gets \Call{combineTiling}{A, (x_d, y_d), (x_{min}, y_{min}), (x_{max}, y_{max})}$
+\State \Return{$A$}
+\EndIf
+\If{$x_d \leq x_{mid} \And y_d \leq y_{mid}$} \Comment{Call for upper left sub-square}
+\State $A \gets \Call{boardTiling}{A, (x_d, y_d), (x_{min}, y_{min}), (x_{mid}, y_{mid})}$
+\Else
+\State $A \gets \Call{boardTiling}{A, (x_{mid}, y_{mid}), (x_{min}, y_{min}), (x_{mid}, y_{mid})}$
+\EndIf
+\If{$x_d > x_{mid} \And y_d \leq y_{mid}$} \Comment{Call for upper right sub-square}
+\State $A \gets \Call{boardTiling}{A, (x_d, y_d), (x_{mid} + 1, y_{min}), (x_{max}, y_{mid})}$
+\Else
+\State $A \gets \Call{boardTiling}{A, (x_{mid} + 1, y_{mid}), (x_{mid} + 1, y_{min}), (x_{max}, y_{mid})}$
+\EndIf
+\State ...\Comment{Similarly add recursive calls for bottom left and bottom right sub-square}
+\State $A \gets \Call{combineTiling}{A, (x_d, y_d), (x_{min}, y_{min}), (x_{max}, y_{max})}$
+\State \Return{$A$}
+\EndProcedure
+\State \Call{boardTiling}{$A[1..n][1..n], (x_d, y_d), (1, 1), (n, n)$}
+\end{algorithmic}
+
+
+\subsection{Time Complexity}
+
+We can split the board into $4$ sub-boards in constant time. The \underline{COMBINE TILE} routine can also be executed in constant time.
+
+Thus for every call of \underline{BOARD TILING}, we will make 4 recursive calls of same routine and our splitting and merging cost is $n^2$. Thus the final recurrence relation is \[ T(n) = 4T(\frac{n}{2}) + O(1)\]
+
+using Master Theorem for case $log_{b}(a) > c$, the runtime complexity of algorithm is $O(n^{2})$
+
+Also, since we are only storing one $n \times n$ array to represent the board and passing the same by reference, the space complexity of the algorithm is also $O(n^2)$
+
+\section{Question 2}
+
+\subsection{Problem}
+
+Suppose we are given a set L of n line segments in 2D plane. Each line segment has one endpoint on the line y = 0, one endpoint on the line y = 1 and all the 2n points are distinct. Give an algorithm that uses dynamic programming and computes a largest subset of L of which every pair of segments intersects each other. You must also give a justification why your algorithm works correctly.
+
+\subsection{Approach}
+
+Given a pair of wires $(a_i,b_i)$ and $(a_j,b_j)$, they will intersect when either $a_i<a_j,b_i>b_j$, or $a_i>a_j,b_i<b_j$. Therefore, if we sort the array of wires according to $a_i$ ($i < j \leftrightarrow a_i < a_j$), we need to count the number of pairs $(i,j)$ s.t $i<j,b_i>b_j$. We are interested in the biggest subset such that the number of pairs in that subset = $s \choose 2$, where $s$=size of subset. This is only going to be true for a subsequence $s$ where  $b_i>b_j \forall 1 \leq i,j \leq |s|, i<j$, i.e a strictly decreasing subsequence. To compute that we can use dynamic programming.
+
+\subsection{Pre-Processing}
+
+We shall define a subroutine binarySearch, which when given an array $a$ that is strictly decreasing and a number $x$, returns the smallest index $i$ s.t $a_i < x$. 
+
+\subsection{Subproblem}
+
+
+We shall define our state $dp_{i}$ as the maximal number $x$ s.t we can make a decreasing subsequence of length $i$  where the last element is $x$. 
+
+\subsection{Iterative transitions}
+
+As we iterate over $b$, the length of the longest decreasing subsequence possible ending on $b_i$ is $max(\{x | dp_x> b_i\}) + 1$. After that we can update $dp_{x+1} = max(dp_{x+1},b_i)$, and the final answer is $max(\{x | \exists dp_x\})$
+
+
+\subsection{Pseudo-Code}
+
+\begin{algorithmic}[1]
+\Procedure{binarySearch}{a[1..n],x}
+\State $l \gets 1$
+\State $r \gets n$
+\State \While{$l < r$}
+\State $m \gets \frac{(l+r)}{2}$
+\State \If{$a_i < x$}
+\State $r\gets m$
+\State \ElsIf{$a_i \geq x$}
+\State $l \gets m+1$
+\EndIf
+\EndWhile
+\State \Return{$l$}
+\EndProcedure
+
+\Procedure{LargestSubset}{Wires[1..N]}
+
+\State $WIRES \gets \Call{sort}{WIRES}$
+
+\State $dp[N+1] \gets \{\infty ,-\infty ,...,-\infty \}$
+
+\State ${ans} \gets 0$
+
+\State \For{$k = 1$ to $n$}
+\State $i \gets \Call{binarySearch}{dp,b_k}$
+\State $dp[i] \gets max(dp[i],b_k)$
+\State ${ans}\gets {max}(ans,i)$
+\EndFor
+\State \Return{${ans}$}
+\EndProcedure
+
+\end{algorithmic}
+
+
+\subsection{Time Complexity}
+
+Sorting the array will be $O(n log n)$. Additionally, we are going through the array once and each time performing $BINARYSEARCH$ which is $O(log n)$, which $O(n) \times O(log n) = O(n log n)$. Thus we have a final time complexity of $O(n log n)$
+
+\section{Question - 3}
+
+\subsection{Problem}
+
+Suppose that an equipment manufacturing company manufactures $s_i$ units in the $i$-th week. Each week’s production has to be shipped by the end of that week. Every week, one of the three shipping agents A, B and C are involved in shipping that week’s production and they charge in the following:
+
+\begin{itemize}
+    \item Company A charges a rupees per unit.
+    \item Company B charges b rupees per week (irrespective of the number of units), but will only ship for a block of 3 consecutive weeks.
+    \item Company C charges c rupees per unit but returns a reward of d rupees per week, but will not ship for a block of more than 2 consecutive weeks. It means that if $s_i$ unit is shipped in the $i^{th}$ week through company C, then the cost for $i^{th}$ week will be $cs_i - d$.
+\end{itemize}
+
+The total cost of the schedule is the total cost to be paid to the agents. If $s_i$ unit is produced in the $i^{th}$ week, then $s_i$ unit has to be shipped in the $i^{th}$ week. Then, give an efficient algorithm that computes a schedule of minimum cost. (Hint: use dynamic programming)
+
+
+\subsection{Approach}
+For this, we can use a dynamic programming approach. We are interested in 2 parameters, the current week and the shipping company hired for the particular week. Thus, we can use a Dynamic Programming routine to iterate over all possible combinations in an efficient manner. We can then find the minimum cost of hiring every company for every week, while keeping in mind the provided constraints.
+
+\subsection{Pre-Processing}
+
+We need a DP Table to store the values of calculated subproblems in order to implement memoization. 
+
+Thus, we will initialize an array $memo$ of dimensions $N \times 3$ and initialize with $-1$ to indicate that the states are yet to be calculated.
+
+\subsection{Subproblem}
+
+Our subproblem will have $2$ parameters, the current week we are iterating upon and the company hired for the week. Thus we will represent the subproblems as $dp_{i, j}$ where $i \in [1, n]$ and $j \in {A, B, C}$
+
+Hence, to find the minimum cost of shipping for $n$ weeks, we will have to find $dp_{N, A}, dp_{N, B} \And dp_{N, C}$. The final answer will be $min(dp_{N, A}, dp_{N, B}, dp_{N, C})$
+
+\subsection{Recurrence Relation}
+
+Now, by using the constraints provided in the problem statement, we can write the following recurrence relation:-
+
+\begin{equation}
+dp_{i, A} = 
+\left\{
+    \begin{array}{lr}
+        s_i \times a & \text{if } i = 1\\
+        min(dp_{i - 1, A}, dp_{i - 1, B}, dp_{i - 1, C}) + s_i \cdot a & \text{if } i\geq 1
+    \end{array}
+\right\}
+\end{equation}
+
+\begin{equation}
+dp_{i, B} = 
+\left\{
+    \begin{array}{lr}
+        \infty & \text{if } i \leq 2\\
+        3b & \text{if } i = 3\\
+        min(dp_{i - 3, A}, dp_{i - 3, B}, dp_{i - 3, C}) + 3b & \text{if } i\geq 4
+    \end{array}
+\right\}
+\end{equation}
+
+\begin{equation}
+dp_{i, C} = 
+\left\{
+    \begin{array}{lr}
+        s_i \times c - d & \text{if } i = 1\\
+        min(dp_{i - 1, A}, dp_{i - 1, B}, dp_{i - 1, C}) + s_i \times c - d & \text{if } i = 2\\
+        min(min(dp_{i - 2, A}, dp_{i - 2, B}) + (s_{i - 1} + s_i) \cdot c - 2d, min(dp_{i - 1, A}, dp_{i - 1, B}) + s_i \cdot c - d) & \text{if } i\geq 3
+    \end{array}
+\right\}
+\end{equation}
+
+As we always have to ship with company $B$ in $3$ consecutive weeks, we will only calculate the cost of shipping for all $3$ weeks in the $3^{rd}$ week. Thus, $dp_{1, B}$ and $dp_{2, B}$ are $\infty$, even though we may ship using company $B$ in $1^{st}$ and $2^{nd}$ week.
+
+Similarly, for company $C$, since we can ship for maximum $2$ consecutive weeks, we will compute $2$ possibilites, that we are only shipping using the company for previous week, and for current and previous week.
+
+\subsection{Pseudo-Code}
+
+\begin{algorithmic}[1]
+
+\Procedure{dp}{i,j}
+\If{$memo[i][j] \neq -1$}
+\State \Return{memo[i][j]}
+\EndIf
+
+\If{$j = A$}
+\If{$i=1$}
+\State \Return{$memo[i][j] \gets a \cdot s_1$}
+\Else
+\State \Return{$memo[i][j] \gets min(\Call{dp}{i - 1, A}, \Call{dp}{i - 1, B}, \Call{dp}{i - 1, C}) + a \cdot s_1$}
+\EndIf
+\ElsIf{$j = B$}
+\If{$i \leq 2$}
+\State \Return{$\infty$}
+\ElsIf{$i=3$}
+\State \Return{$memo[i][j] \gets 3 \cdot b$}
+\Else
+\State \Return{$memo[i][j] \gets min(\Call{dp}{i-3,A},\Call{dp}{i-3,B},\Call{dp}{i-3,C}) + 3b$}
+\EndIf
+\ElsIf{$j=C$}
+\If{$i=1$}
+\State \Return{$memo[i][j] \gets c \cdot s_1 - d$}
+\ElsIf{$i=2$}
+\State \Return{$memo[i][j] \gets min(\Call{dp}{i-1,A},\Call{dp}{i-1,B}) + s_i \cdot c - d$}
+\Else
+\State \Return{$memo[i][j] \gets min(min(\Call{dp}{i-2,A},\Call{dp}{i-2,B})+c(s_i+s_{i-1})-2d,min(\Call{dp}{i-1,A},\Call{dp}{i-1,B})+cs_i-d)$}
+\EndIf
+\Endif
+\EndIf
+\EndProcedure
+\end{algorithmic}
+
+\subsection{Time Complexity}
+
+Since we need to calculate $3 \times N$ subproblems, and each subproblem requires a constant time to compute, the runtime complexity of the above algorithm will be $O(3 \dot N) = O(N)$
+
+Further, since we are also storing all the states, the space complexity is also same, i.e. $O(N)$. But it can be improved to $O(1)$ if we implement this question using an iterative approach as we only need to remember values of DP Table for previous $3$ states.
+
+\end{document}
