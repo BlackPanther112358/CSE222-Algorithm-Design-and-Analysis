@@ -1,0 +1,368 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{algpseudocode}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{paralist}
+\usepackage{blindtext}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=black
+    }
+
+\title{ADA Theory Assignment - 2}
+\author{
+    \\\vspace{0em} Aakarsh Jain \\\vspace{-0.5em}
+    \footnotesize{Roll Number - 2021507}\\\vspace{-0.5em}
+    \footnotesize{IIIT - Delhi}\\\vspace{-0.5em}
+    \footnotesize{\href{mailto:aakarsh21507@iiitd.ac.in}{\texttt{aakarsh21507@iiitd.ac.in}}}
+  \and
+    \\\vspace{0em} Siddhant Rai Viksit \\\vspace{-0.5em}
+    \footnotesize{Roll Number - 2021565}\\\vspace{-0.5em}
+    \footnotesize{IIIT - Delhi}\\\vspace{-0.5em}
+    \footnotesize{\href{mailto:siddhant21565@iiitd.ac.in}{\texttt{siddhant21565@iiitd.ac.in}}} 
+    \vspace{1em}
+}
+
+\date{April 08, 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+
+\subsection{Problem}
+
+The police department in the city of Computopia has made all the streets one-way.
+But the mayor of the city still claims that it is possible to legally drive from one intersection to any
+other intersection.
+
+\begin{itemize}
+    \item Formulate this problem as a graph theoretic problem and explain why it can be solved in linear
+time.
+    \item Suppose it was found that the mayor’s claim was wrong. She has now made a weaker claim: “if
+you start driving from town-hall, navigating one-way streets, then no matter where you reach,
+there is always a way to drive legally back to the town-hall. Formulate this weaker property as
+a graph theoretic problem and explain how it can be solved in linear time.
+\end{itemize}
+
+\subsection{Formulating to Graph problem}
+
+It is assumed that we are provided the input of intersections, and streets joining these intersections. Let's assume that there is $n$ instersections and $m$ edges.
+
+We can then start by labelling the town-hall as $0$, and label the remaining $n - 1$ intersections from $1$ to $n - 1$. We can also similarly label the streets from $0$ to $m - 1$. Now, we can think of each intersection as a vertex in the graph and the one-way streets as edges, directed in direction of the street. We will thus create set $V$ for all the vertices and set $E$ to contain all the edges. Thus, we have obtained a directed graph $G$ using $E$ and $V$.
+
+We will now create an adjacency list $adj$. If there is a street from intersection $u$ to $v$, then we will add $v$ to $adj(u)$. Similarly, we will also create an reversed adjacency list $rev\_adj$ for part (b), i.e., If there is a street from intersection $u$ to $v$, we will add $u$ to $rev\_adj(v)$
+
+\subsection{Approach}
+
+\subsubsection{Part a}
+
+We will use the \underline{Kosaraju's algorithm} to distribute the graph $G$ into its Strongly Connected Components (SCC). Then we will check if all the vertices in set $V$ belong to the same SCC. If yes, then Mayor's claim is true, otherwise it is false.
+
+\subsubsection{Part b}
+
+We will first mark all the vertices reachable from the source using DFS as part of set $A$. We will then reverse all the edges and mark all vertices reachable now as the set $B$. If $A \subset B$, the claim is proved, otherwise it is false.
+
+\subsection{Kosaraju's Algorithm to find SCC}
+
+We can use Kosaraju's Algorithm to find the SCC for each vertex of the graph as discussed in Lecture-12 of the course.
+
+The pseudo-code for the same can be found \href{https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm#The_algorithm}{here}, or a detailed implementation in C++ can be found \href{https://cp-algorithms.com/graph/strongly-connected-components.html}{here} along with basic proof of correctness.
+
+Here we will assume that the function $kosaraju$ implements the above algorithm, and takes an adjacency list as input and returns a vector $scc$ with $scc[u]$ denoting the SCC of vertex $u$.
+
+\subsection{Proof of Correctness}
+
+\subsubsection{Part a}
+
+According to mayor's claim, for any 2 intersection, there must be a path from one to another. In the graph, this translates such that for any $2$ vertices $u$ and $v$, there must be a path from $u$ to $v$ and vice versa. Thus, by definition, $u$ and $v$ must belong to the same SCC. Since this is true for any $2$ vertices, the entire set $V$ must belong to the same SCC, i.e., the graph $G$ has a single SCC containing all the vertices.
+
+To verify the same, we will use the \underline{Kosaraju's algorithm} as described above to find the SCC's and check if all the vertices belong to the same SCC.
+
+\subsubsection{Part b}
+
+Let us denote $P(u \rightarrow v,G)$ to mean there exists a path from $u$ to $v$ in the graph $G$. Let us denote $R(G)$ of a graph $G$ as the graph with the same vertices as $G$ but with all edges reversed. Now, 
+
+\begin{equation}
+P(v\rightarrow u,G) \rightarrow P(u \rightarrow v,R(G))
+\end{equation}
+The mayor's claim is 
+\newline
+$P(u \rightarrow v,G) \rightarrow P(v \rightarrow u,G) \forall v$. 
+\newline
+Using (1)
+\newline
+$P(u \rightarrow v,G) \rightarrow P(u \rightarrow v,R(G)) \forall v$
+\newline
+We can construct the set $v | P(u \rightarrow v,G)$ and $v | P(u \rightarrow v,R(G))$ using DFS and compare them.
+
+\subsection{Pseudo-Code}
+\subsubsection{part a}
+
+\begin{algorithmic}[1]
+
+\Procedure{checkClaim}{$adj$}
+\State $n \gets \Call{length}{adj}$
+\State $scc \gets \Call{kosaraju}{adj}$
+\For{$i$ from $0$ to $n - 1$}
+\If{$scc[i] \neq scc[i + 1]$}
+\State \Return{$False$}
+\EndIf
+\EndFor
+\State \Return{$True$}
+\EndProcedure
+
+\end{algorithmic}
+
+\subsubsection{part b}
+\begin{algorithmic}
+    \Procedure{DFS}{u,visited, adj}
+    \State $visited[u] \gets 1$
+    \For{$v$ in $adj[u]$}
+    \If{$visited[v] \neq 1$}
+    \Call{DFS}{$v$}
+    \EndIf
+    \EndFor
+    \EndProcedure
+
+    \Procedure{Solve}{adj,revadj,v,townhall}
+    \State $A \gets [0,..,0]$
+    \State $B \gets [0,...,0]$
+    \State \Call{DFS}{townhall,A,adj}
+    \State \Call{DFS}{townhall,B,revadj}
+    \For{$u$ in $[1,..,v]$}
+    \If{$A[u]=1$ and $B[u]=0$}
+    \Return{False}
+    \EndIf
+    \EndFor
+    \newline
+    \Return{True}
+    \EndProcedure
+    
+\end{algorithmic}
+
+
+\subsection{Time Complexity}
+
+\subsubsection{Part a}
+
+The time complexity for \underline{Kosaraju's algorithm} is $O(|V| + |E|)$, and then we check if all the vertices of the graph belong to the same SCC in $O(V)$, since we require $O(1)$ time to check the SCC any vertex belongs to.
+
+Thus, the total Time Complexity is $O(|V| + |E|)$.
+
+\subsubsection{Part b}
+The time complexity for the two DFS calls is $O(|V| + |E|)$, and comparing $A$ and $B$ is $O(|V|)$. Preprocessing $adj$ and $revadj$ is $O(|E|)$. Thus our final time complexity will be $O(|V| + |E|)$
+
+\section{Question 2}
+
+\subsection{Problem}
+
+Given an edge-weighted connected undirected graph $G = (V, E)$ with $n + 20$ edges. Design an algorithm that runs in $O(n)$-time and outputs an edge with smallest weight contained in a cycle of G.
+
+\subsection{Formulating to Graph problem}
+
+We are already provided a graph with $n$ vertices and $n + 20$ edges. We can denote the set of vertices of graph as $V$ and set of edges as $E$. We will thus store the graph using an adjacency list $adj$, where $adj(u)$ is the set of all vertices $v$ such that there exists an edge between $u$ and $v$. We will also use the function $getWeights(u, v)$, which returns the list of weights of all the edges between $u$ and $v$.
+
+\subsection{Approach}
+
+Since the provided graph is an undirected graph, if an edge does not belong to a cycle, then it is a bridge (removing the edge from the graph will cause the number of connected components to increase by 1), and vice versa. 
+
+Thus, we can use a simple DFS - Traversal using the algorithm to find bridges described below to find the edges which belong to a cycle, and then find the least weighted edge among all such edges.
+
+NOTE: The above algorithm assumes that there are no self loops in the graph, i.e, there is no edge which has same endpoints.
+
+\subsection{Finding Bridges}
+
+The algorithm for finding bridges is very similar to that of finding \underline{cut-vertices} already described in tutorials. We will use a DFS traversal to visit every node in the graph. For the purpose of this algorithm, we can start DFS from any node. We will then compute the following:
+
+We will store the start time of DFS Traversal for every node in the array $tin$. We will also initialize $tin$ as $-1$ to indicate that the vertex has not been visited yet in the DFS Traversal.
+
+We can now define $low$ for our DFS tree as:
+
+\begin{equation}
+low(u) = min
+\left\{
+    \begin{array}{lr}
+        tin(u)\\
+        tin(p) & \forall p \text{ such that} (u, p) \text{ is a back edge}\\
+        low(v) & \forall v \text{ such that} (u, v) \text{ is a forward edge}
+    \end{array}
+\right\}
+\end{equation}
+
+Thus, for an edge $(u, v)$ in the DFS tree, it is a bridge iff $low(v) > tin(u)$ 
+
+NOTE that a DFS tree is a directed tree, where edges indicate the direction of DFS traversal.
+
+\subsection{Proof of Correctness}
+
+We need to prove that in a weighted undirected graph $G$, if an edge $a$ is not a bridge, then $a$ must belong to a cycle in graph $G$.
+
+We will prove the above using contradiction, Let's assume that there exists an edge $a$ in graph $G$, which is not a bridge and does not belong to a cycle in graph $G$. Since $a$ is a bridge, there must exist a path $P$ in graph $G$ which connects the vertices $u$ and $v$ and does not contain the edge $a$. But, if we create a path $P'$ by adding edge $a$ to path $P$, then $P'$ forms a cycle. This is a contradiction to our assumption, and thus by way of contradiction, our claim is correct.
+
+We can also prove that if an edge $a$ belonging to undirected graph $G$ is a bridge, then $a$ cannot belong to a cycle. 
+
+We will again use method of contradiction and assume there exists and edge $b$ which is a bridge and belongs to a cycle $C$. Now, let $u$ and $v$ be 2 vertices belonging to $C$. As $u$ and $v$ belong to a cycle, there must be $2$ disjoint paths from $u$ to $v$. Thus, if we remove the edge $a$ from the graph, $u$ and $v$ still remain connected using the other path. Thus, the edge $a$ cannot be a bridge. 
+
+Hence, our algorithm will correctly identify all the edges which belong to cycle, by checking if they are a bridge are not. The final output of the algorithm is then the least weight of all such edges.
+
+\subsection{Pseudo-Code}
+
+\begin{algorithmic}[1]
+
+\State $timer \gets 0$  \Comment{Initialize global variable to store the timer}
+\State $minWeight \gets \infty$ \Comment{Initialize global variable to store the minimum required weight}
+
+\Procedure{DFS}{$u, par$}
+\State $tin(u) \gets timer$
+\State $low(u) \gets timer$
+\State $timer \gets timer + 1$
+\For{$v \in adj(u)$}
+\If{$v = par$} \Comment{Ignore the parent vertex}
+\State continue
+\ElsIf{$tin(v) = -1$} \Comment{Forward edge}
+\State \Call{DFS}{$v$, $u$} 
+\State $low(u) = min(low(u), low(v))$
+\If{$low(v) \leq tin(u)$}
+\State $minWeight \gets min(minWeight, min(\Call{getWeights}{u, v}))$
+\EndIf
+\Else \Comment{Back edge}
+\State $low(u) = min(low(u), tin(v))$
+\State $minWeight \gets min(minWeight, min(\Call{getWeights}{u, v}))$
+\EndIf
+\EndFor
+\EndProcedure
+
+\Procedure{getMinWeight}{}
+\For{$u \in V$}
+\If{$tin(u) = -1$}
+\State $\Call{DFS}{u, -1}$
+\EndIf
+\EndFor
+\If{$minWeight = \infty$} \Comment{If there is no cycle in the graph, return $-1$}
+\State $minWeight \gets -1$
+\EndIf
+\State \Return{$minWeight$}
+\EndProcedure
+
+\end{algorithmic}
+
+
+\subsection{Time Complexity}
+
+Since we use a single DFS traversal of the graph, the Time Complexity of the solution is $O(|V| + |E|)$, where $|V|$ and $|E|$ are the number of vertices and edges respectively.
+
+Since we know that $|V| = n$ and $|E| = n + 20$, the Time Complexity of the algorithm can be simplified to $O(n)$.
+
+\subsection{References}
+
+\begin{itemize}
+    \item \href{https://cp-algorithms.com/graph/bridge-searching.html}{Algorithm to find bridges}
+\end{itemize}
+
+\section{Question - 3}
+
+\subsection{Problem}
+
+Suppose that G be a directed acyclic graph with following features.
+
+\begin{itemize}
+
+\item G has a s  ingle source $s$ and several sinks $t_1,...,t_k$
+.
+\item Each edge $(v \rightarrow w)$ (i.e. an edge directed from v to w) has an associated weight $Pr(v \rightarrow w)$
+between 0 and 1.
+
+\item For each non-sink vertex $v$, the total weight of all the edges leaving v is
+$\sum (v \rightarrow w) \in E Pr(v \rightarrow w) = 1$
+
+\item The weights $Pr(v \rightarrow w)$ define a random walk in $G$ from the source $s$ to some sink $t_i$; after
+reaching any non-sink vertex $v$, the walk follows the edge $v \rightarrow w$ with probability $Pr(v \rightarrow w)$.
+
+\item All the probabilities are mutually independent.
+
+\end{itemize}
+
+Describe and analyze an algorithm to compute the
+probability that this random walk reaches sink $t_i$
+
+for every $i \in \{1,...,k\}$. You can assume that an arithmetic operation takes $O(1)$ time.
+
+\subsection{Pre-Processing}
+
+We will represent the edges $E$ as an array of arrays, with $E_v$ being $I(v)$ ($u \in E_v$ if $(u\rightarrow v)$ is an edge in the graph). This is equivalent to $rev_adj$. We shall also initialize an array $memo$ of size $|V|$ to store all subproblems, and an answer array of size $|t|$ to store the final answers.
+
+\subsection{Approach}
+
+We shall use dynamic programmming, with the state $P(v)$ meaning the probability of a walk reaching vertex $v$, and the transitions given by
+$P(v) = \sum_{\exists i \rightarrow v}P(i)\cdot Pr(i \rightarrow v)$
+
+\subsection{Proof of Correctness}
+For any vertex $v$, let us denote $I(v)$ as the set of all vertices $x | (x \rightarrow v) \in E$. 
+To reach the vertex $v$ on a random walk, the path has to first reach a vertex $i \in I(v)$, then take the edge $(i \rightarrow v)$ to finally get to $v$. Therefore, the probability of reaching any vertex $v$ $P(v)$ is
+\newline
+$P(v) = \sum_{i \in I(v)}P(i)\cdot Pr(i \rightarrow v)$ 
+\newline
+We can thus compute $P(t_i) \forall i \in {1,...,k}$ using dynamic programming 
+
+\subsection{Conditions} 
+\begin{itemize}
+\item The sum of probabilities of outgoing edges from every node is 1, therefore, we can form a complete probability tree for every vertex.
+\item The source does not have any incoming edges
+\item Since this is a DAG, there aren't any circular dependencies in our recurrence relation
+\end{itemize}
+
+\subsection{Subproblem}
+Our subproblem $P(v)$ is the probability of reaching the vertex $v$ from $s$.
+
+Therefore the subproblems for the final answers are $P(t_i) \forall i \in {1,...,k}$
+
+\subsection{Recurrence Relation}
+
+
+$P(v) = \sum_{i \in I(v)}P(i)\cdot Pr(i \rightarrow v)$
+
+with our base case being $P(s) = 1$, since all walks start from there. For any individual path involving the edge $i\in I(v)$, the probability is $P(i)\cdot Pr(i \rightarrow v)$. We can just sum this over all $I(v)$ to get our final $P(v)$.
+
+\subsection{Graph Traversal}
+
+Since we solve every subproblem once, thus the corresponding vertex is picked and its immediate neighbours are visited next, this is equivalent to a DFS traversal of the graph.
+
+\subsection{Pseudo-Code}
+
+\begin{algorithmic}[1]
+\State $memo \gets [-1,...,-1]$ 
+\Procedure{P}{v,E}
+\If{$memo[v] = -1$}
+\State $s \gets 0$
+\For{$i$ in $E[v]$}
+\State $s \gets s + \Call{P}{i,E}\cdot Pr(i,v)$
+\EndFor
+\State $memo[v] \gets s$
+\EndIf
+
+\State \Return{$memo[v]$}
+\EndProcedure
+
+\Procedure{solve}{E,s,t}
+\State $memo[s] \gets 1$
+\State $answer \gets [-1,..,-1]$
+\For{$t_i$ in $t$}
+\State $answer[i] \gets P(t_i,E)$
+\EndFor
+
+\State \Return{$answer$}
+\EndProcedure
+\end{algorithmic}
+
+\subsection{Time Complexity}
+
+Since there are $V$ subproblems and to solve them we need to iterate through all edges once, the final time complexity is $O(V+E)$
+
+\end{document}
