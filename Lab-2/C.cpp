@@ -88,14 +88,7 @@ const ld pi = 3.141592653589793;
 int n, m;
 vector<vector<pair<int, pii>>> adj;
 vi min_time;
-
-struct cmp{
-    bool operator() (int a, int b) const{
-        return min_time[a] == min_time[b] ? a < b : min_time[a] < min_time[b];
-    }
-};
-
-set<int, cmp> s;
+minhii pq;
 
 int optimal_time(int y){
     if(y == 0) return 0;
@@ -120,25 +113,21 @@ int reach_time(int x, int y, int start){
 }
 
 void dijkstra(){
-    min_time[0] = 0;
-    s.insert(0);
-    while(!s.empty()){
-        watch(min_time);
-        int u = *s.begin();
+    pq.push({0, 0});
+    while(!pq.empty()){
+        int u = pq.top().second;
+        int t = pq.top().first;
         watch(u);
+        pq.pop();
+        if(min_time[u] == inf) min_time[u] = t;
+        else continue;
         if(u == (n - 1)) return;
-        s.erase(s.begin());
-        for(auto e:adj[u]){
-            int v = e.first, x = e.second.first, y = e.second.second;
-            watch(v);
-            int t = reach_time(x, y, min_time[u]);
-            watch(t);
-            if(t < min_time[v]){
-                if(s.find(v) != s.end()) s.erase(s.find(v));
-                min_time[v] = t;
-                s.insert(v);
-                watch("inserted");
-            }
+        if(t > min_time[u]) continue;
+        for(auto v: adj[u]){
+            int x = v.second.first, y = v.second.second;
+            if(min_time[v.first] != inf) continue;
+            int new_time = reach_time(x, y, t);
+            pq.push({new_time, v.first});
         }
     }
 }
