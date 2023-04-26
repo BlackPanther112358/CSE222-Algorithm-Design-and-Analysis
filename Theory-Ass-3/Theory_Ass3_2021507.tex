@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{algpseudocode}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{paralist}
+\usepackage{blindtext}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=black
+    }
+
+\title{ADA Theory Assignment - 3}
+\author{
+    \\\vspace{0em} Aakarsh Jain \\\vspace{-0.5em}
+    \footnotesize{Roll Number - 2021507}\\\vspace{-0.5em}
+    \footnotesize{IIIT - Delhi}\\\vspace{-0.5em}
+    \footnotesize{\href{mailto:aakarsh21507@iiitd.ac.in}{\texttt{aakarsh21507@iiitd.ac.in}}}
+  \and
+    \\\vspace{0em} Siddhant Rai Viksit \\\vspace{-0.5em}
+    \footnotesize{Roll Number - 2021565}\\\vspace{-0.5em}
+    \footnotesize{IIIT - Delhi}\\\vspace{-0.5em}
+    \footnotesize{\href{mailto:siddhant21565@iiitd.ac.in}{\texttt{siddhant21565@iiitd.ac.in}}} 
+    \vspace{1em}
+}
+
+\date{April 25, 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+
+\subsection{Problem}
+The towns and villages of the Island of Sunland are connected by an extensive rail
+network. Doweltown is the capital of Sunland. Due to a deadly contagious disease, recently, few
+casualties have been reported in the village of Tinkmoth. To prevent the disease from spreading
+to Doweltown, the Ministry of Railway of the Sunland wants to completely cut down the rail
+communication between Tinkmoth and Doweltown. For this, they wanted to put traffic blocks
+between pairs of rail stations that are directly connected by railway track. It means if there are two
+stations $x$ and $y$ that are directly connected by railway line, then there is no station in between $x$
+and $y$ in that particular line. If a traffic block is put in the track directly connecting $x$ and $y$, then
+no train can move from $x$ to $y$. To minimize expense (and public notice), the authority wants to
+put as few traffic blocks as as possible. Note that traffic blocks cannot be put in a station, it has to
+be put in a rail-track that directly connects two stations.
+\newline
+Formulate the above as a flow-network problem and design a polynomial-time algorithm to solve
+it. Give a precise justification of the running time of your algorithm.
+
+\subsection{Formulating to Network Flow problem}
+
+Let us formulate the railway network as a graph $G$, with set of vertices as $V$ and edges as $E$. For each city in the railway network, we will create a corresponding vertex in V. Thus $|V| = $ nuumber of cities in the rail network. Now, for the rail lines present in the rail network between cities $x$ and $y$, we will add 2 directed edges in $G$, from $x$ to $y$, and from $y$ to $x$. As all the rail lines are similar in nature, we will arbitrarily assign the capacity $1$ to every edge in $E$.
+
+In the above graph $G$, the vertex corresponding to city of Tinkmoth is the source vertex, and the vertex corresponding to city of Doweltown is the sink vertex. Thus, the graph $G$ is a network flow graph with all the required properties of such a graph.
+
+In the above formulation we assume that every city has exactly $1$ station and there is exactly $1$ rail line between any $2$ cities in the rail network.
+
+\subsection{Reduction to Maximum Flow problem}
+
+We now need to find a set of rail lines, $A$, such that when these rail lines are blocked, towns of Tinkmoth and Doweltown are no longer connected. In our network flow model, the blocking of rail lines between cities $x$ and $y$ can be simulated by removing the edge from $x$ to $y$ and the edge $y$ to $x$. 
+
+Thus, the set $A$ of rail lines can be mapped to another set $B$ of edges in the graph $G$, and removing edges in the $B$ should add another connected component to $G$, such that vertices corresponding to Tinkmoth and Doweltown are in different connected components. Thus, the set $B$ is nothing but a cut in the network graph $G$.
+
+Now, we need to find the size of smallest such set $A$, and thus consequently, also minimize the size of set $B$, hence, we need to find the min cut of the graph $G$.
+
+Let's say that $G$ now has the maximal flow possible. Now for a cut, define the component containing source as $X$ and the one containing sink as $Y$. Also, assume that set of edges $B$ is a min cut of the graph, as required by the question. Since every edge has capacity $1$, using Max-flow Min-cut theorem and Integral flow theorem, every edge in $B$ from a vertex in $X$ to a vertex in $Y$, must have flow of $1$. Also every edge in $B$, directed from a vertex in $Y$ to $X$ must have flow $0$. Thus, the capacity of cut $B$ is equal to number of edges in $B$ from a vertex in $X$ to a vertex in $Y$. 
+
+Now, as $B$ is a min-cut for $G$, removing these vertices will disconnect cities of Tinkmoth and Doweltown, and $B$ is the minimal set possible. 
+
+Using Max-flow Min-cut theorem, the max flow of $G$ is equal to capacity of min-cut $B$, which is in turn equal to number of edges in $B$ from a vertex in $X$ to a vertex in $Y$.
+
+Thus, the max flow of graph $G$ will be equal to the count of minimum edges, removing whom there will be no path from source to sink. 
+
+Thus, if we block the rail lines corresponding to these edges, we will cut off communications between towns of Tinkmoth and Doweltown. Hence, the answer is simply the max-flow of graph $G$.
+
+We can now simply find the max-flow of the graph $G$ using Ford-Fulkerson Algorithm, and return that as our final answer.
+
+\subsection{Time Complexity}
+
+The time complexity of finding Maximum Flow using the Ford-Fulkerson Algorithm is $O(|E|F)$, where $F$ is the maximum flow of the network.
+
+Since, maximum flow possible is at most the number of cities, i.e., the number of vertices, The final time complexity is $O(|E||V|)$
+
+Since, all the edges in the graph have unit capacity, we can also use Dinic's Algorithm to find max-flow (which is also based on Ford-Fulkerson Algorithm) to find the maximum flow in runtime complexity of $O(|E||V|^{\frac{2}{3}})$, which is slightly faster.
+
+\subsection{References}
+
+\begin{itemize}
+    \item \href{https://www.inf.ufpr.br/pos/techreport/RT_DINF003_2004.pdf}{Computing the Minimum Cut and Maximum
+Flow of Undirected Graphs}
+    \item 
+    \href{https://cp-algorithms.com/graph/dinic.html#unit-capacities-networks}{Runtime Complexity of Dinic's Algorithm on unit capacity networks}
+\end{itemize}
+
+\end{document}
